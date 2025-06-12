@@ -1,0 +1,9 @@
+fastapi
+uvicorn 
+torch 
+transformers 
+PyPDF2 
+aiofiles 
+scikit-learn 
+nltk 
+python-multipart
