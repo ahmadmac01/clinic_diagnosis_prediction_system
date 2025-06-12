@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clinical Notes Disease Prediction</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 flex items-center justify-center h-screen">
+    <div class="bg-white rounded-lg shadow-lg p-8 w-full max-w-md text-center">
+        <h1 class="text-2xl font-bold text-gray-800 mb-6">Clinical Notes Disease Prediction</h1>
+        <form action="/predict/" method="post" enctype="multipart/form-data" id="uploadForm">
+            <input type="file" name="file" accept=".txt,.pdf" required class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 mb-6">
+            <button type="submit" id="submit-btn" class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg transition duration-300">Predict Disease</button>
+        </form>
+        <div id="spinner" class="spinner mx-auto mt-6" style="display:none;">
+            <div class="animate-spin rounded-full h-12 w-12 border-t-4 border-b-4 border-blue-500"></div>
+        </div>
+        <div id="result" class="result mt-6" style="display:none;"></div>
+    </div>
+
+    <script>
+        const form = document.getElementById("uploadForm");
+        const spinner = document.getElementById("spinner");
+        const resultDiv = document.getElementById("result");
+
+        form.onsubmit = async (event) => {
+            event.preventDefault();
+            spinner.style.display = "block";
+            resultDiv.innerHTML = "";
+            resultDiv.style.display = "none";
+
+            try {
+                const formData = new FormData(form);
+                const response = await fetch('/predict/', {
+                    method: 'POST',
+                    body: formData,
+                });
+
+                if (!response.ok) {
+                    throw new Error("Error in fetching the prediction.");
+                }
+
+                const data = await response.json();
+                spinner.style.display = "none";
+
+                resultDiv.innerHTML = `
+                    <h3 class="text-xl font-bold text-gray-800 mb-4">Patient Clinical Report</h3>
+                    <div class="text-left border border-gray-200 p-4 rounded-lg bg-white">
+                        <table class="w-full">
+                            <tbody>
+                                <tr class="border-b border-gray-200">
+                                    <td class="py-2 pr-4 font-semibold text-gray-700">Predicted Disease:</td>
+                                    <td class="py-2 text-gray-800">${data.predicted_disease}</td>
+                                </tr>
+                                <tr class="border-b border-gray-200">
+                                    <td class="py-2 pr-4 font-semibold text-gray-700 align-top">Description:</td>
+                                    <td class="py-2 text-gray-800">${data.description}</td>
+                                </tr>
+                                <tr class="border-b border-gray-200">
+                                    <td class="py-2 pr-4 font-semibold text-gray-700">Recommended Medicines:</td>
+                                    <td class="py-2 text-gray-800">${data.medicines.join(", ")}</td>
+                                </tr>
+                                <tr>
+                                    <td class="py-2 pr-4 font-semibold text-gray-700">Specialists:</td>
+                                    <td class="py-2 text-gray-800">${data.specialists.join(", ")}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+                resultDiv.style.display = "block";
+            } catch (error) {
+                spinner.style.display = "none";
+                resultDiv.innerHTML = `<p class="text-red-500">Error: ${error.message}</p>`;
+                resultDiv.style.display = "block";
+            }
+        };
+    </script>
+</body>
+</html>
